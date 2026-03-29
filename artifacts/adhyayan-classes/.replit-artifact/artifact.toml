@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Adhyayan Classes"
+version = "1.0.0"
+id = "artifacts/adhyayan-classes"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 24254
+
+[services.development]
+run = "pnpm --filter @workspace/adhyayan-classes run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/adhyayan-classes", "run", "build" ]
+publicDir = "artifacts/adhyayan-classes/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "24254"
+BASE_PATH = "/"

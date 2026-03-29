@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel – Adhyayan Classes</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #222; }
+
+    /* ── LOGIN ─────────────────────────────────────────── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    }
+    .login-box {
+      background: #fff;
+      padding: 44px 40px;
+      border-radius: 14px;
+      width: 380px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+    }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .login-logo .logo-icon {
+      font-size: 2.4rem;
+      display: block;
+    }
+    .login-box h2 {
+      font-size: 1.35rem;
+      color: #1a237e;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+    .login-box .subtitle {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 28px;
+      text-align: center;
+    }
+    .field-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 5px;
+      display: block;
+    }
+    .input-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      font-family: inherit;
+    }
+    .login-box input:focus {
+      border-color: #1a237e;
+      box-shadow: 0 0 0 3px rgba(26,35,126,0.1);
+    }
+    .eye-toggle {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #aaa;
+      padding: 6px 8px;
+      line-height: 1;
+      transition: color 0.2s;
+      z-index: 2;
+      pointer-events: auto;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .eye-toggle:hover { color: #555; }
+    #pass-input { padding-right: 46px; }
+    .login-btn {
+      width: 100%;
+      padding: 13px;
+      background: #1a237e;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      font-family: inherit;
+      margin-top: 4px;
+    }
+    .login-btn:hover { background: #283593; }
+    .login-btn:active { transform: scale(0.99); }
+    .login-btn:disabled { background: #9fa8da; cursor: not-allowed; }
+    #login-error {
+      display: none;
+      margin-top: 14px;
+      padding: 11px 14px;
+      background: #ffebee;
+      color: #c62828;
+      border-radius: 8px;
+      font-size: 0.87rem;
+      text-align: center;
+      border-left: 4px solid #e53935;
+    }
+    .login-spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── DASHBOARD ─────────────────────────────────────── */
+    #dashboard { display: none; min-height: 100vh; }
+
+    /* ── SIDEBAR ───────────────────────────────────────── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: 230px;
+      height: 100vh;
+      background: #1a237e;
+      color: #fff;
+      padding: 0;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+    }
+    .sidebar-logo {
+      padding: 22px 20px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sidebar-logo span { color: #ff8a65; }
+    .sidebar nav { flex: 1; padding: 14px 0; }
+    .sidebar nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 20px;
+      color: rgba(255,255,255,0.72);
+      text-decoration: none;
+      font-size: 0.92rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+    .sidebar nav a:hover { background: rgba(255,255,255,0.08); color: #fff; }
+    .sidebar nav a.active {
+      background: rgba(255,255,255,0.12);
+      color: #fff;
+      border-left-color: #ff8a65;
+    }
+    .sidebar-footer {
+      padding: 16px 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.55);
+    }
+    .sidebar-footer .admin-email {
+      word-break: break-all;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    #logout-btn {
+      display: block;
+      width: 100%;
+      padding: 10px;
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: inherit;
+      transition: background 0.2s;
+    }
+    #logout-btn:hover { background: rgba(255,255,255,0.2); }
+
+    /* ── MAIN CONTENT ──────────────────────────────────── */
+    .main { margin-left: 230px; padding: 32px; min-height: 100vh; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 26px;
+    }
+    .page-header h1 { font-size: 1.5rem; color: #1a237e; font-weight: 700; }
+
+    /* ── STAT CARDS ────────────────────────────────────── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-bottom: 28px;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .stat-icon { font-size: 2rem; }
+    .stat-card .number { font-size: 2rem; font-weight: 700; color: #1a237e; line-height: 1; }
+    .stat-card .label { font-size: 0.83rem; color: #888; margin-top: 4px; }
+
+    /* ── CARDS / TABLES ────────────────────────────────── */
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 24px;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+      margin-bottom: 24px;
+    }
+    .card h2 { font-size: 1.05rem; color: #333; margin-bottom: 18px; font-weight: 700; }
+
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      text-align: left;
+      padding: 10px 12px;
+      font-size: 0.78rem;
+      color: #999;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      border-bottom: 2px solid #f0f0f0;
+      font-weight: 700;
+    }
+    td {
+      padding: 12px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid #f5f5f5;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #fafafa; }
+
+    .badge-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.73rem;
+      font-weight: 700;
+      background: #e8eaf6;
+      color: #1a237e;
+    }
+
+    /* ── BUTTONS ───────────────────────────────────────── */
+    .btn {
+      padding: 9px 18px;
+      border: none;
+      border-radius: 7px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-primary { background: #1a237e; color: #fff; }
+    .btn-primary:hover { background: #283593; }
+    .btn-danger { background: #ffebee; color: #c62828; }
+    .btn-danger:hover { background: #ffcdd2; }
+    .btn-edit { background: #e8f5e9; color: #2e7d32; margin-right: 6px; }
+    .btn-edit:hover { background: #c8e6c9; }
+    .btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+    /* ── DRAG & DROP ───────────────────────────────────── */
+    .drag-hint {
+      font-size: 0.8rem;
+      color: #bbb;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .drag-list { list-style: none; }
+    .drag-item {
+      background: #fff;
+      border: 1.5px solid #eee;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      cursor: grab;
+      transition: box-shadow 0.2s, border-color 0.2s;
+      user-select: none;
+    }
+    .drag-item:active { cursor: grabbing; }
+    .drag-item.dragging {
+      opacity: 0.5;
+      border-color: #1a237e;
+      box-shadow: 0 4px 20px rgba(26,35,126,0.2);
+    }
+    .drag-item.drag-over {
+      border-color: #e65100;
+      background: #fff8f5;
+    }
+    .drag-handle {
+      color: #ccc;
+      font-size: 1.2rem;
+      cursor: grab;
+      flex-shrink: 0;
+    }
+    .drag-item:active .drag-handle { cursor: grabbing; }
+    .drag-content { flex: 1; min-width: 0; }
+    .drag-title { font-weight: 700; color: #1a237e; font-size: 0.95rem; }
+    .drag-sub { font-size: 0.82rem; color: #888; margin-top: 3px; }
+    .drag-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .order-badge {
+      background: #f0f2f5;
+      color: #999;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+
+    /* ── MODAL ─────────────────────────────────────────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(2px);
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px;
+      width: 480px;
+      max-width: 92vw;
+      box-shadow: 0 16px 50px rgba(0,0,0,0.18);
+      animation: modalIn 0.2s ease;
+    }
+    @keyframes modalIn { from { opacity:0; transform:scale(0.95) translateY(8px); } to { opacity:1; transform:scale(1) translateY(0); } }
+    .modal h3 { font-size: 1.15rem; color: #1a237e; margin-bottom: 22px; font-weight: 700; }
+    .modal label { font-size: 0.8rem; font-weight: 600; color: #555; display: block; margin-bottom: 5px; }
+    .modal input,
+    .modal select,
+    .modal textarea {
+      width: 100%;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      border: 1.5px solid #ddd;
+      border-radius: 7px;
+      font-size: 0.92rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .modal input:focus,
+    .modal select:focus,
+    .modal textarea:focus {
+      border-color: #1a237e;
+      box-shadow: 0 0 0 3px rgba(26,35,126,0.08);
+    }
+    .modal textarea { height: 85px; resize: vertical; }
+    .modal-btns { display: flex; gap: 10px; justify-content: flex-end; margin-top: 6px; }
+
+    /* ── TOAST ─────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      background: #1a237e;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      z-index: 900;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: all 0.3s;
+      pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.error { background: #c62828; }
+    #toast.success { background: #2e7d32; }
+
+    /* ── EMPTY / LOADING ───────────────────────────────── */
+    .empty { text-align: center; padding: 48px 20px; color: #bbb; font-size: 0.95rem; }
+    .empty .empty-icon { font-size: 2.5rem; display: block; margin-bottom: 10px; }
+    .loading { text-align: center; padding: 32px; color: #bbb; }
+
+    /* ── MOBILE ────────────────────────────────────────── */
+    @media (max-width: 700px) {
+      .sidebar { width: 100%; height: auto; position: relative; flex-direction: row; flex-wrap: wrap; }
+      .sidebar nav { display: flex; padding: 0; overflow-x: auto; }
+      .sidebar nav a { padding: 10px 14px; font-size: 0.8rem; white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; }
+      .sidebar nav a.active { border-left: none; border-bottom-color: #ff8a65; }
+      .sidebar-footer { display: none; }
+      .main { margin-left: 0; padding: 16px; }
+      .stats-row { grid-template-columns: 1fr 1fr; }
+      table { font-size: 0.82rem; }
+      .drag-item { flex-wrap: wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     LOGIN SCREEN
+════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo"><span class="logo-icon">🎓</span></div>
+    <h2>Adhyayan Classes</h2>
+    <p class="subtitle">Admin Panel — Sign in to continue</p>
+
+    <label class="field-label" for="login-email">Email Address</label>
+    <div class="input-wrap">
+      <input type="email" id="login-email" placeholder="admin@example.com" autocomplete="username" />
+    </div>
+
+    <label class="field-label" for="pass-input">Password</label>
+    <div class="input-wrap">
+      <input type="password" id="pass-input" placeholder="Enter your password" autocomplete="current-password" />
+      <button class="eye-toggle" onmousedown="event.preventDefault();" onclick="togglePass();" type="button" id="eye-btn" tabindex="-1" title="Show / Hide password">👁</button>
+    </div>
+
+    <button class="login-btn" id="login-btn" onclick="handleLogin()">Sign In</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     DASHBOARD
+════════════════════════════════════════════════════════ -->
+<div id="dashboard">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-logo">🎓 Adhyayan <span>Admin</span></div>
+    <nav>
+      <a onclick="showPage('overview')" class="active" id="nav-overview">📊 &nbsp;Overview</a>
+      <a onclick="showPage('inquiries')" id="nav-inquiries">📥 &nbsp;Inquiries</a>
+      <a onclick="showPage('courses')" id="nav-courses">📚 &nbsp;Courses</a>
+      <a onclick="showPage('faculty')" id="nav-faculty">👨‍🏫 &nbsp;Faculty</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="admin-email">👤 <span id="admin-email-display"></span></div>
+      <button id="logout-btn" onclick="handleLogout()">🔓 Sign Out</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- OVERVIEW PAGE -->
+    <div class="page active" id="page-overview">
+      <div class="page-header"><h1>Overview</h1></div>
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-icon">📥</div>
+          <div><div class="number" id="stat-inquiries">—</div><div class="label">Total Inquiries</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📚</div>
+          <div><div class="number" id="stat-courses">—</div><div class="label">Courses</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">👨‍🏫</div>
+          <div><div class="number" id="stat-faculty">—</div><div class="label">Faculty Members</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Recent Inquiries</h2>
+        <div id="recent-inquiries-list"><div class="loading">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- INQUIRIES PAGE -->
+    <div class="page" id="page-inquiries">
+      <div class="page-header"><h1>Inquiries</h1></div>
+      <div class="card">
+        <div id="inquiries-list"><div class="loading">Loading…</div></div>
+      </div>
+    </div>
+
+    <!-- COURSES PAGE -->
+    <div class="page" id="page-courses">
+      <div class="page-header">
+        <h1>Courses</h1>
+        <button class="btn btn-primary" onclick="openCourseModal()">+ Add Course</button>
+      </div>
+      <div class="card">
+        <div class="drag-hint">⠿ &nbsp;Drag rows to reorder how courses appear on the website</div>
+        <ul class="drag-list" id="courses-drag-list"></ul>
+        <div id="courses-empty" class="empty" style="display:none;">
+          <span class="empty-icon">📚</span>
+          No courses yet. Click "+ Add Course" to add one.
+        </div>
+      </div>
+    </div>
+
+    <!-- FACULTY PAGE -->
+    <div class="page" id="page-faculty">
+      <div class="page-header">
+        <h1>Faculty</h1>
+        <button class="btn btn-primary" onclick="openFacultyModal()">+ Add Faculty</button>
+      </div>
+      <div class="card">
+        <div class="drag-hint">⠿ &nbsp;Drag rows to reorder faculty display order on the website</div>
+        <ul class="drag-list" id="faculty-drag-list"></ul>
+        <div id="faculty-empty" class="empty" style="display:none;">
+          <span class="empty-icon">👨‍🏫</span>
+          No faculty added yet. Click "+ Add Faculty" to add one.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.main -->
+</div><!-- /#dashboard -->
+
+<!-- ══════════════════════════════════════════════════════
+     MODALS
+════════════════════════════════════════════════════════ -->
+
+<!-- Course Modal -->
+<div class="modal-overlay" id="course-modal">
+  <div class="modal">
+    <h3 id="course-modal-title">Add Course</h3>
+    <input type="hidden" id="course-id" />
+    <label>Course Title *</label>
+    <input type="text" id="course-title" placeholder="e.g. Engineering Entrance – 11 & 12" />
+    <label>Badge</label>
+    <input type="text" id="course-badge" placeholder="e.g. Foundation" />
+    <label>Description</label>
+    <textarea id="course-desc" placeholder="Short description of the course"></textarea>
+    <div class="modal-btns">
+      <button class="btn" onclick="closeCourseModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCourse()">Save Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- Faculty Modal -->
+<div class="modal-overlay" id="faculty-modal">
+  <div class="modal">
+    <h3 id="faculty-modal-title">Add Faculty</h3>
+    <input type="hidden" id="faculty-id" />
+    <label>Full Name *</label>
+    <input type="text" id="faculty-name" placeholder="e.g. Nitesh Pandey" />
+    <label>Subject *</label>
+    <input type="text" id="faculty-subject" placeholder="e.g. Mathematics" />
+    <label>Experience</label>
+    <input type="text" id="faculty-exp" placeholder="e.g. 8 Years Experience" />
+    <label>Previous Organisation</label>
+    <input type="text" id="faculty-org" placeholder="e.g. Ex-Faculty, Aakash Institute" />
+    <div class="modal-btns">
+      <button class="btn" onclick="closeFacultyModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveFaculty()">Save Faculty</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════ -->
+<script>
+// ── Supabase Init ───────────────────────────────────────
+const SUPABASE_URL = 'https://itulduswpzwzvfyxkpjx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0dWxkdXN3cHp3enZmeXhrcGp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MDU5NzYsImV4cCI6MjA5MDI4MTk3Nn0.H1nZe6s7FDTsM1iTO8kfmrUVoxiErTN4qO1tPwjMQms';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── Toast ───────────────────────────────────────────────
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+}
+
+// ── Auth: Toggle Password ───────────────────────────────
+function togglePass() {
+  const inp = document.getElementById('pass-input');
+  const btn = document.getElementById('eye-btn');
+  const isHidden = inp.type === 'password';
+  inp.type = isHidden ? 'text' : 'password';
+  btn.textContent = isHidden ? '🙈' : '👁';
+  // cursor ko end pe rakho
+  const len = inp.value.length;
+  inp.focus();
+  inp.setSelectionRange(len, len);
+}
+
+// ── Auth: Login ─────────────────────────────────────────
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('pass-input').value;
+  const errEl = document.getElementById('login-error');
+  const btn   = document.getElementById('login-btn');
+
+  errEl.style.display = 'none';
+
+  // Validation
+  if (!email) {
+    showLoginError('Please enter your email address.');
+    document.getElementById('login-email').focus();
+    return;
+  }
+  if (!pass) {
+    showLoginError('Please enter your password.');
+    document.getElementById('pass-input').focus();
+    return;
+  }
+  if (pass.length < 6) {
+    showLoginError('Password must be at least 6 characters.');
+    return;
+  }
+
+  // Loading state
+  btn.disabled = true;
+  btn.innerHTML = '<span class="login-spinner"></span> Signing in…';
+
+  try {
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+
+    if (error) {
+      let msg = 'Sign-in failed. Please try again.';
+      if (error.message.includes('Invalid login') || error.message.includes('invalid_credentials')) {
+        msg = '❌ Wrong email or password. Please check and try again.';
+      } else if (error.message.includes('Email not confirmed')) {
+        msg = '📧 Please verify your email before signing in.';
+      } else if (error.message.includes('Too many requests')) {
+        msg = '⏳ Too many attempts. Please wait a few minutes and try again.';
+      }
+      showLoginError(msg);
+      return;
+    }
+
+    showDashboard(data.user);
+
+  } catch (e) {
+    showLoginError('Network error. Please check your internet connection.');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Sign In';
+  }
+}
+
+function showLoginError(msg) {
+  const errEl = document.getElementById('login-error');
+  errEl.textContent = msg;
+  errEl.style.display = 'block';
+  // Shake animation
+  errEl.style.animation = 'none';
+  errEl.offsetHeight; // reflow
+  errEl.style.animation = 'shake 0.3s ease';
+}
+
+// ── Auth: Logout ────────────────────────────────────────
+async function handleLogout() {
+  await sb.auth.signOut();
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-email').value = '';
+  document.getElementById('pass-input').value = '';
+  document.getElementById('login-error').style.display = 'none';
+}
+
+// ── Auth: Show Dashboard ────────────────────────────────
+function showDashboard(user) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('admin-email-display').textContent = user.email;
+  showPage('overview');
+}
+
+// ── Session Check on Load ───────────────────────────────
+window.addEventListener('load', async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) showDashboard(session.user);
+});
+
+// ── Enter Key on Login ──────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') {
+    handleLogin();
+  }
+});
+
+// ── Navigation ──────────────────────────────────────────
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+
+  if (page === 'overview')  loadOverview();
+  if (page === 'inquiries') loadInquiries();
+  if (page === 'courses')   loadCourses();
+  if (page === 'faculty')   loadFaculty();
+}
+
+// ── Overview ─────────────────────────────────────────────
+async function loadOverview() {
+  const [inq, crs, fac] = await Promise.all([
+    sb.from('inquiries').select('*', { count: 'exact', head: true }),
+    sb.from('courses').select('*', { count: 'exact', head: true }),
+    sb.from('faculty').select('*', { count: 'exact', head: true }),
+  ]);
+  document.getElementById('stat-inquiries').textContent = inq.count ?? 0;
+  document.getElementById('stat-courses').textContent   = crs.count ?? 0;
+  document.getElementById('stat-faculty').textContent   = fac.count ?? 0;
+
+  const { data } = await sb.from('inquiries').select('*').order('created_at', { ascending: false }).limit(5);
+  const el = document.getElementById('recent-inquiries-list');
+  if (!data || data.length === 0) {
+    el.innerHTML = '<div class="empty"><span class="empty-icon">📭</span>No inquiries yet.</div>';
+    return;
+  }
+  el.innerHTML = buildInquiryTable(data);
+}
+
+// ── Inquiries ────────────────────────────────────────────
+async function loadInquiries() {
+  const { data } = await sb.from('inquiries').select('*').order('created_at', { ascending: false });
+  const el = document.getElementById('inquiries-list');
+  if (!data || data.length === 0) {
+    el.innerHTML = '<div class="empty"><span class="empty-icon">📭</span>No inquiries yet. They appear here when someone fills the form.</div>';
+    return;
+  }
+  el.innerHTML = buildInquiryTable(data);
+}
+
+function buildInquiryTable(data) {
+  return `<div style="overflow-x:auto;">
+  <table>
+    <thead><tr>
+      <th>Student</th><th>Parent</th><th>Phone</th>
+      <th>Class</th><th>Course</th><th>Message</th><th>Date</th>
+    </tr></thead>
+    <tbody>
+      ${data.map(r => `<tr>
+        <td><strong>${esc(r.student_name)}</strong></td>
+        <td>${esc(r.parent_name)}</td>
+        <td><a href="tel:${esc(r.parent_phone)}" style="color:#1a237e;text-decoration:none;">${esc(r.parent_phone)}</a></td>
+        <td>${esc(r.student_class)}</td>
+        <td><span class="badge-tag">${esc(r.course_interest)}</span></td>
+        <td style="max-width:160px;color:#888;font-size:0.85rem;">${esc(r.message || '—')}</td>
+        <td style="color:#aaa;font-size:0.8rem;white-space:nowrap;">${new Date(r.created_at).toLocaleDateString('en-IN')}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table></div>`;
+}
+
+// Safe HTML escaping — replaces deprecated escape()/unescape()
+function esc(str) {
+  return String(str ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+
+// ════════════════════════════════════════════════════════
+//  DRAG & DROP ENGINE
+// ════════════════════════════════════════════════════════
+let dragSrc = null;
+
+function initDragDrop(listId) {
+  const list = document.getElementById(listId);
+  if (!list) return;
+
+  list.querySelectorAll('.drag-item').forEach(item => {
+    item.setAttribute('draggable', 'true');
+
+    item.addEventListener('dragstart', e => {
+      dragSrc = item;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => item.classList.add('dragging'), 0);
+    });
+
+    item.addEventListener('dragend', () => {
+      item.classList.remove('dragging');
+      list.querySelectorAll('.drag-item').forEach(i => i.classList.remove('drag-over'));
+      // Save new order
+      saveOrder(listId);
+    });
+
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    });
+
+    item.addEventListener('dragenter', e => {
+      e.preventDefault();
+      if (item !== dragSrc) {
+        list.querySelectorAll('.drag-item').forEach(i => i.classList.remove('drag-over'));
+        item.classList.add('drag-over');
+      }
+    });
+
+    item.addEventListener('drop', e => {
+      e.stopPropagation();
+      if (item !== dragSrc) {
+        // Determine position: insert before or after based on mouse Y
+        const rect = item.getBoundingClientRect();
+        const midY = rect.top + rect.height / 2;
+        if (e.clientY < midY) {
+          list.insertBefore(dragSrc, item);
+        } else {
+          list.insertBefore(dragSrc, item.nextSibling);
+        }
+        item.classList.remove('drag-over');
+      }
+    });
+  });
+}
+
+async function saveOrder(listId) {
+  const list = document.getElementById(listId);
+  const items = list.querySelectorAll('.drag-item');
+  const isCoursesSection = listId === 'courses-drag-list';
+  const table = isCoursesSection ? 'courses' : 'faculty';
+
+  const updates = [];
+  items.forEach((item, idx) => {
+    // Update order badge display
+    const badge = item.querySelector('.order-badge');
+    if (badge) badge.textContent = '#' + (idx + 1);
+    updates.push({ id: item.dataset.id, sort_order: idx + 1 });
+  });
+
+  // Persist to Supabase (upsert sort_order for each record)
+  // Note: requires 'sort_order' integer column in 'courses' and 'faculty' tables
+  for (const u of updates) {
+    await sb.from(table).update({ sort_order: u.sort_order }).eq('id', u.id);
+  }
+
+  showToast('✅ Order saved!', 'success');
+}
+
+// ════════════════════════════════════════════════════════
+//  COURSES
+// ════════════════════════════════════════════════════════
+async function loadCourses() {
+  const { data, error } = await sb.from('courses').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+  const listEl  = document.getElementById('courses-drag-list');
+  const emptyEl = document.getElementById('courses-empty');
+
+  if (!data || data.length === 0) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  listEl.innerHTML = data.map((r, i) => `
+    <li class="drag-item" data-id="${r.id}" data-type="course">
+      <span class="drag-handle">⠿</span>
+      <span class="order-badge">#${i + 1}</span>
+      <div class="drag-content">
+        <div class="drag-title">${esc(r.title)}</div>
+        <div class="drag-sub">
+          ${r.badge ? `<span class="badge-tag" style="margin-right:6px;">${esc(r.badge)}</span>` : ''}
+          ${r.description ? esc(r.description).substring(0, 80) + (r.description.length > 80 ? '…' : '') : '<span style="color:#ccc;">No description</span>'}
+        </div>
+      </div>
+      <div class="drag-actions">
+        <button class="btn btn-edit btn-sm" onclick='editCourse(${JSON.stringify(r)})'>Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteCourse('${r.id}')">Delete</button>
+      </div>
+    </li>
+  `).join('');
+
+  initDragDrop('courses-drag-list');
+}
+
+function openCourseModal() {
+  document.getElementById('course-id').value    = '';
+  document.getElementById('course-title').value = '';
+  document.getElementById('course-badge').value = '';
+  document.getElementById('course-desc').value  = '';
+  document.getElementById('course-modal-title').textContent = 'Add Course';
+  document.getElementById('course-modal').classList.add('open');
+  setTimeout(() => document.getElementById('course-title').focus(), 100);
+}
+
+function closeCourseModal() {
+  document.getElementById('course-modal').classList.remove('open');
+}
+
+function editCourse(r) {
+  document.getElementById('course-id').value    = r.id;
+  document.getElementById('course-title').value = r.title || '';
+  document.getElementById('course-badge').value = r.badge || '';
+  document.getElementById('course-desc').value  = r.description || '';
+  document.getElementById('course-modal-title').textContent = 'Edit Course';
+  document.getElementById('course-modal').classList.add('open');
+  setTimeout(() => document.getElementById('course-title').focus(), 100);
+}
+
+async function saveCourse() {
+  const id    = document.getElementById('course-id').value;
+  const title = document.getElementById('course-title').value.trim();
+  const badge = document.getElementById('course-badge').value.trim();
+  const desc  = document.getElementById('course-desc').value.trim();
+
+  if (!title) {
+    showToast('❗ Course title is required.', 'error');
+    document.getElementById('course-title').focus();
+    return;
+  }
+
+  try {
+    if (id) {
+      await sb.from('courses').update({ title, badge, description: desc }).eq('id', id);
+      showToast('✅ Course updated!', 'success');
+    } else {
+      const { data: existing } = await sb.from('courses').select('sort_order').order('sort_order', { ascending: false }).limit(1);
+      const nextOrder = existing && existing.length > 0 ? (existing[0].sort_order || 0) + 1 : 1;
+      await sb.from('courses').insert({ title, badge, description: desc, sort_order: nextOrder });
+      showToast('✅ Course added!', 'success');
+    }
+    closeCourseModal();
+    loadCourses();
+  } catch (e) {
+    showToast('❌ Could not save. Try again.', 'error');
+  }
+}
+
+async function deleteCourse(id) {
+  if (!confirm('Delete this course? This cannot be undone.')) return;
+  await sb.from('courses').delete().eq('id', id);
+  showToast('🗑 Course deleted.', '');
+  loadCourses();
+}
+
+// ════════════════════════════════════════════════════════
+//  FACULTY
+// ════════════════════════════════════════════════════════
+async function loadFaculty() {
+  const { data } = await sb.from('faculty').select('*').order('sort_order', { ascending: true }).order('created_at', { ascending: true });
+  const listEl  = document.getElementById('faculty-drag-list');
+  const emptyEl = document.getElementById('faculty-empty');
+
+  if (!data || data.length === 0) {
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+    return;
+  }
+  emptyEl.style.display = 'none';
+
+  listEl.innerHTML = data.map((r, i) => `
+    <li class="drag-item" data-id="${r.id}" data-type="faculty">
+      <span class="drag-handle">⠿</span>
+      <span class="order-badge">#${i + 1}</span>
+      <div class="drag-content">
+        <div class="drag-title">${esc(r.name)}</div>
+        <div class="drag-sub">
+          ${esc(r.subject)}
+          ${r.previous_org ? ` · <span style="color:#e65100;">${esc(r.previous_org)}</span>` : ''}
+          ${r.experience ? ` · ${esc(r.experience)}` : ''}
+        </div>
+      </div>
+      <div class="drag-actions">
+        <button class="btn btn-edit btn-sm" onclick='editFaculty(${JSON.stringify(r)})'>Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteFaculty('${r.id}')">Delete</button>
+      </div>
+    </li>
+  `).join('');
+
+  initDragDrop('faculty-drag-list');
+}
+
+function openFacultyModal() {
+  document.getElementById('faculty-id').value      = '';
+  document.getElementById('faculty-name').value    = '';
+  document.getElementById('faculty-subject').value = '';
+  document.getElementById('faculty-exp').value     = '';
+  document.getElementById('faculty-org').value     = '';
+  document.getElementById('faculty-modal-title').textContent = 'Add Faculty';
+  document.getElementById('faculty-modal').classList.add('open');
+  setTimeout(() => document.getElementById('faculty-name').focus(), 100);
+}
+
+function closeFacultyModal() {
+  document.getElementById('faculty-modal').classList.remove('open');
+}
+
+function editFaculty(r) {
+  document.getElementById('faculty-id').value      = r.id;
+  document.getElementById('faculty-name').value    = r.name || '';
+  document.getElementById('faculty-subject').value = r.subject || '';
+  document.getElementById('faculty-exp').value     = r.experience || '';
+  document.getElementById('faculty-org').value     = r.previous_org || '';
+  document.getElementById('faculty-modal-title').textContent = 'Edit Faculty';
+  document.getElementById('faculty-modal').classList.add('open');
+  setTimeout(() => document.getElementById('faculty-name').focus(), 100);
+}
+
+async function saveFaculty() {
+  const id      = document.getElementById('faculty-id').value;
+  const name    = document.getElementById('faculty-name').value.trim();
+  const subject = document.getElementById('faculty-subject').value.trim();
+  const exp     = document.getElementById('faculty-exp').value.trim();
+  const org     = document.getElementById('faculty-org').value.trim();
+
+  if (!name || !subject) {
+    showToast('❗ Name and Subject are required.', 'error');
+    if (!name) document.getElementById('faculty-name').focus();
+    else document.getElementById('faculty-subject').focus();
+    return;
+  }
+
+  try {
+    if (id) {
+      await sb.from('faculty').update({ name, subject, experience: exp, previous_org: org }).eq('id', id);
+      showToast('✅ Faculty updated!', 'success');
+    } else {
+      const { data: existing } = await sb.from('faculty').select('sort_order').order('sort_order', { ascending: false }).limit(1);
+      const nextOrder = existing && existing.length > 0 ? (existing[0].sort_order || 0) + 1 : 1;
+      await sb.from('faculty').insert({ name, subject, experience: exp, previous_org: org, sort_order: nextOrder });
+      showToast('✅ Faculty added!', 'success');
+    }
+    closeFacultyModal();
+    loadFaculty();
+  } catch (e) {
+    showToast('❌ Could not save. Try again.', 'error');
+  }
+}
+
+async function deleteFaculty(id) {
+  if (!confirm('Delete this faculty member? This cannot be undone.')) return;
+  await sb.from('faculty').delete().eq('id', id);
+  showToast('🗑 Faculty removed.', '');
+  loadFaculty();
+}
+
+// ── Close modals on overlay click ───────────────────────
+document.getElementById('course-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeCourseModal();
+});
+document.getElementById('faculty-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeFacultyModal();
+});
+
+// ── Escape key closes modals ────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    closeCourseModal();
+    closeFacultyModal();
+  }
+});
+</script>
+
+<style>
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%,60% { transform: translateX(-6px); }
+  40%,80% { transform: translateX(6px); }
+}
+</style>
+</body>
+</html>

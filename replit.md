@@ -94,3 +94,26 @@ Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHea
 ### `scripts` (`@workspace/scripts`)
 
 Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.
+
+### `artifacts/adhyayan-classes` (`@workspace/adhyayan-classes`)
+
+React + Vite website for Adhyayan Classes coaching institute in Varanasi. Full SEO-optimized single-page website.
+
+- Entry: `src/main.tsx` → `src/App.tsx`
+- Styles: `src/index.css` — all animations including bulbGlow, founderGlow, flying words, birds, particles
+- Public assets: `public/logo.png`, `public/founder.jpg`
+- Data: Fetches courses & faculty from Supabase (`itulduswpzwzvfyxkpjx.supabase.co`); fallback to local defaults
+- Admin panel: `public/admin.html` (from original template)
+- Vercel config: `vercel.json` — SPA rewrites + security headers
+- Key features:
+  - Animated SVG bulb with infinite glow/flicker (bulbGlow keyframes)
+  - Flying words animation (Hindi + English motivational words)
+  - Animated birds + floating particles in hero
+  - Founder (Nitesh Kumar Pandey, Math) highlighted with glowing portrait
+  - 3 courses: Pre-Foundation (IX & X), Foundation XI & XII (JEE & NEET), Commerce XI & XII
+  - "Mentored By" section (not "Taught by")
+  - WhatsApp float button (+917080836344)
+  - Contact/enquiry form → Supabase `inquiries` table
+  - Full JSON-LD structured data (EducationalOrganization schema)
+  - Google Fonts: Merriweather, Lato, Rajdhani, Nunito
+- Deploy: `pnpm --filter @workspace/adhyayan-classes run build` → `dist/` for Vercel static hosting
