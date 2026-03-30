@@ -414,14 +414,16 @@ function GallerySection({ gallery }: { gallery: Gallery[] }) {
     <section id="gallery" style={{ maxWidth:1100,margin:"0 auto",padding:"64px 40px" }} aria-labelledby="gallery-heading">
       <h2 id="gallery-heading" style={{ fontFamily:"'Merriweather',serif",fontSize:"1.7rem",color:"#1a237e",marginBottom:8 }}>Gallery</h2>
       <p style={{ color:"#888",fontSize:"0.95rem",marginBottom:36 }}>Moments from Adhyayan Classes</p>
-      <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit, minmax(280px, 1fr))",gap:16,maxWidth:900 }}>
+      <div style={{ display:"grid",gridTemplateColumns:"repeat(3, 1fr)",gap:16 }}>
         {display.map(g=>(
-          <div key={g.id} style={{ borderRadius:10,overflow:"hidden",boxShadow:"0 2px 16px rgba(0,0,0,0.1)" }}>
-            <img src={g.image_url} alt={g.caption}
-              style={{ width:"100%",height:240,objectFit:"cover",display:"block",transition:"transform 0.3s" }}
-              onMouseOver={e=>(e.currentTarget.style.transform="scale(1.03)")}
-              onMouseOut={e=>(e.currentTarget.style.transform="none")}/>
-            {g.caption && <div style={{ padding:"10px 14px",background:"#f5f7ff",fontSize:"0.82rem",color:"#666" }}>{g.caption}</div>}
+          <div key={g.id} style={{ borderRadius:10,overflow:"hidden",boxShadow:"0 2px 16px rgba(0,0,0,0.1)",background:"#fff" }}>
+            <div style={{ width:"100%",aspectRatio:"4/3",overflow:"hidden" }}>
+              <img src={g.image_url} alt={g.caption}
+                style={{ width:"100%",height:"100%",objectFit:"cover",display:"block",transition:"transform 0.4s ease" }}
+                onMouseOver={e=>(e.currentTarget.style.transform="scale(1.05)")}
+                onMouseOut={e=>(e.currentTarget.style.transform="scale(1)")}/>
+            </div>
+            {g.caption && <div style={{ padding:"10px 14px",background:"#f5f7ff",fontSize:"0.82rem",color:"#555",lineHeight:1.4 }}>{g.caption}</div>}
           </div>
         ))}
       </div>
@@ -448,12 +450,12 @@ function ContactSection() {
       <p style={{ color:"#888",fontSize:"0.95rem",marginBottom:36 }}>Fill in the form below and we'll get back to you</p>
       <div style={{ display:"flex",gap:50,flexWrap:"wrap" }}>
         <div style={{ flex:1,minWidth:240 }}>
-          <p style={{ fontSize:"0.95rem",color:"#555",lineHeight:1.9,marginBottom:12 }}><strong style={{ color:"#222" }}>📍 Address:</strong><br/>Adhyayan Classes, Varanasi, Uttar Pradesh</p>
+          <p style={{ fontSize:"0.95rem",color:"#555",lineHeight:1.9,marginBottom:12 }}><strong style={{ color:"#222" }}>📍 Address:</strong><br/>Nandani Bal Niketan, Central Jail Road, Sikraul, Shivpur, Varanasi</p>
           <p style={{ fontSize:"0.95rem",color:"#555",lineHeight:1.9,marginBottom:12 }}><strong style={{ color:"#222" }}>📞 Phone:</strong><br/>
             <a href="tel:+919140913384" style={{ color:"#1a237e",textDecoration:"none" }}>+91 91409 13384</a>
           </p>
           <p style={{ fontSize:"0.95rem",color:"#555",lineHeight:1.9,marginBottom:12 }}><strong style={{ color:"#222" }}>✉️ Email:</strong><br/>
-            <a href="mailto:adhyayanclasses@gmail.com" style={{ color:"#1a237e",textDecoration:"none" }}>adhyayanclasses@gmail.com</a>
+            <a href="mailto:adhyayan2classes@gmail.com" style={{ color:"#1a237e",textDecoration:"none" }}>adhyayan2classes@gmail.com</a>
           </p>
           <p style={{ fontSize:"0.95rem",color:"#555",lineHeight:1.9 }}><strong style={{ color:"#222" }}>🕐 Hours:</strong><br/>Mon–Sat: 7:00 AM – 8:00 PM</p>
         </div>
