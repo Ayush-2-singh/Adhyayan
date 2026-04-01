@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import emailjs from "@emailjs/browser";
 
 const SUPABASE_URL = "https://itulduswpzwzvfyxkpjx.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0dWxkdXN3cHp3enZmeXhrcGp4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MDU5NzYsImV4cCI6MjA5MDI4MTk3Nn0.H1nZe6s7FDTsM1iTO8kfmrUVoxiErTN4qO1tPwjMQms";
@@ -196,18 +197,18 @@ function HeroSection() {
         Enroll Now &nbsp;→
       </a>
 
-      <div style={{ position:"absolute",bottom:40,display:"flex",gap:60,animation:"acTextEntry 2s cubic-bezier(.22,1,.36,1) 1s both" }}>
+     <div style={{ position:"relative",marginTop:24,display:"flex",gap:"clamp(16px,4vw,60px)",animation:"acTextEntry 2s cubic-bezier(.22,1,.36,1) 1s both",flexWrap:"wrap",justifyContent:"center",width:"100%",padding:"0 16px" }}>
         {[["5000+","Students"],["120+","Courses"],["98%","Success Rate"]].map(([num,label],i)=>(
-          <div key={i} style={{ textAlign:"center",...(i>0?{borderLeft:"1px solid rgba(27,61,110,0.15)",paddingLeft:60}:{}) }}>
-            <span style={{ fontFamily:"'Rajdhani',sans-serif",fontSize:"2rem",fontWeight:700,color:"#E8651A",display:"block" }}>{num}</span>
-            <span style={{ fontSize:"0.75rem",color:"#1B3D6E",opacity:0.6,letterSpacing:"0.1em",textTransform:"uppercase" }}>{label}</span>
-          </div>
+<div key={i} style={{ textAlign:"center",...(i>0?{borderLeft:"1px solid rgba(27,61,110,0.15)",paddingLeft:"clamp(8px,2vw,60px)"}:{}) }}>
+<span style={{ fontFamily:"'Rajdhani',sans-serif",fontSize:"clamp(1.2rem,4vw,2rem)",fontWeight:700,color:"#E8651A",display:"block" }}>{num}</span>
+<span style={{ fontSize:"clamp(0.6rem,2vw,0.75rem)",color:"#1B3D6E",opacity:0.6,letterSpacing:"0.1em",textTransform:"uppercase" }}>{label}</span>
+</div>
         ))}
       </div>
 
-      <div style={{ position:"absolute",bottom:16,right:24,fontSize:"0.7rem",color:"#1B3D6E",opacity:0.35,letterSpacing:"0.15em",textTransform:"uppercase",writingMode:"vertical-rl" }}>
+      <div style={{ position:"absolute",bottom:16,right:24,fontSize:"0.7rem",color:"#1B3D6E",opacity:0.35,letterSpacing:"0.15em",textTransform:"uppercase",writingMode:"vertical-rl",display:"none" }} className="hide-mobile">
         Scroll to explore
-      </div>
+</div>
     </section>
   );
 }
@@ -440,8 +441,27 @@ function ContactSection() {
     e.preventDefault();
     if (!form.name || !form.phone) return;
     setStatus("sending");
-    const ok = await submitEnquiry({ ...form, created_at: new Date().toISOString() });
-    setStatus(ok ? "done" : "error");
+    await submitEnquiry({ ...form, created_at: new Date().toISOString() });
+    try {
+      await emailjs.send(
+        "service_vyf9kwr",
+        "template_wwjgovx",
+        {
+          name: form.name,
+          student_name: form.name,
+          student_phone: form.phone,
+          student_subject: form.course,
+          message: form.message || "No message provided",
+          reply_to: form.email,
+          title: "New Enquiry",
+        },
+        "FZNT9LoPkBbnqFZQA"
+      );
+      setStatus("done");
+    } catch (err) {
+      console.error("EmailJS error:", err);
+      setStatus("error");
+    }
   }
 
   return (

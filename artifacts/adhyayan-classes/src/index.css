@@ -355,3 +355,87 @@
   opacity: 1;
   transform: translateY(0);
 }
+/* ── Mobile Responsive Fixes ── */
+@media (max-width: 768px) {
+
+  /* Navbar fix */
+  nav {
+    padding: 8px 12px !important;
+  }
+  nav ul {
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+  }
+  nav ul li a {
+    font-size: 0.75rem !important;
+    padding: 5px 8px !important;
+  }
+
+  /* Hero Section */
+  .ac-hero {
+    min-height: auto !important;
+    padding: 20px 16px 60px !important;
+  }
+  .ac-cta-btn {
+    padding: 12px 28px !important;
+    font-size: 1rem !important;
+  }
+
+  /* Hide scroll text on mobile */
+  div[style*="writingMode"] {
+    display: none !important;
+  }
+
+  /* Stats bottom in hero */
+  .ac-hero > div[style*="gap:60"] {
+    gap: 16px !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    padding: 0 8px !important;
+  }
+
+  /* Stats bar - 2 column on mobile */
+  div[role="complementary"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Sections padding */
+  section {
+    padding: 32px 16px !important;
+  }
+
+  /* HeroBanner */
+  div[style*="70px 40px 60px"] {
+    padding: 24px 16px !important;
+    flex-direction: column !important;
+    text-align: center !important;
+  }
+
+  /* Contact form */
+  div[style*="gap:50"] {
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+
+  /* Gallery - 1 column */
+  div[style*="repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* WhatsApp button */
+  .wa-float {
+    bottom: 12px !important;
+    right: 12px !important;
+    font-size: 0.8rem !important;
+    padding: 10px 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .ac-logo-name {
+    font-size: clamp(2rem, 12vw, 3rem) !important;
+  }
+  nav ul li:not(:last-child):not(:nth-last-child(2)) {
+    display: none !important;
+  }
+}
